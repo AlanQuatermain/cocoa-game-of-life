@@ -4,7 +4,7 @@
 #define BORDER_WIDTH 1
 #define BORDER whiteColor
 #define BACKGROUND grayColor
-#define CELL_ALIVE redColor
+#define CELL_ALIVE yellowColor
 #define CELL_DEAD blackColor
 
 @implementation CellView
@@ -12,12 +12,12 @@
 - (id)initWithFrame:(NSRect)frame {
     self = [super initWithFrame:frame];
     if (self) {
-        // Initialization code here.
     }
     return self;
 }
 
 - (void)drawRect:(NSRect)rect {
+    
     NSRect bounds = [self bounds];
     [[NSColor BACKGROUND] set];
     [NSBezierPath fillRect:bounds];
@@ -71,6 +71,10 @@
     int column = downPoint.x / (cellWidth + BORDER_WIDTH);
     int row = downPoint.y / (cellHeight + BORDER_WIDTH);
     [controller toggleCellAtColumn:column andRow:row];
+    
+    // For drags we want to enable or disable, not toggle
+    dragCellStatus = [controller cellAliveAtColumn:column andRow:row];
+    
     [self setNeedsDisplay:TRUE];
 }
 
@@ -79,10 +83,12 @@
     NSPoint downPoint = [self convertPoint:p fromView:nil];
     int column = downPoint.x / (cellWidth + BORDER_WIDTH);
     int row = downPoint.y / (cellHeight + BORDER_WIDTH);
+    
     if (column != dragColumn || row != dragRow) {
-        [controller toggleCellAtColumn:column andRow:row];
+        [controller setCellAlive:dragCellStatus AtColumn:column andRow:row];
         [self setNeedsDisplay:TRUE];
     }
+    
     dragColumn = column;
     dragRow = row;
 }

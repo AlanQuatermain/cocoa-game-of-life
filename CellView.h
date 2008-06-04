@@ -9,6 +9,7 @@
     
     int dragColumn;
     int dragRow;
+    bool dragCellStatus;
 }
 
 @end

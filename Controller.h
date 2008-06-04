@@ -14,7 +14,6 @@
     
     NSTimer *updateTimer;
     int updateSpeed;
-
 }
 @property(readwrite, assign) int columns;
 @property(readwrite, assign) int rows;
@@ -23,11 +22,13 @@
 - (Cell *)cellAtColumn:(int)colKey andRow:(int)rowKey;
 - (void)setCell:(Cell *)aCell atColumn:(int)colKey andRow:(int)rowKey;
 - (bool)cellAliveAtColumn:(int)colKey andRow:(int)rowKey;
+- (void)setCellAlive:(bool)alive AtColumn:(int)colKey andRow:(int)rowKey;
 - (void)toggleCellAtColumn:(int)colKey andRow:(int)rowKey;
 
 - (int)findNeighboursForCellAtColumn:(int)colKey andRow:(int)rowKey;
 - (void)updateCells;
 
+#pragma mark Events
 - (IBAction)clear:(id)sender;
 - (IBAction)next:(id)sender;
 - (IBAction)play:(id)sender;

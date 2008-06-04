@@ -52,6 +52,12 @@
     return [[self cellAtColumn:colKey andRow:rowKey] alive];
 }
 
+- (void)setCellAlive:(bool)alive AtColumn:(int)colKey andRow:(int)rowKey
+{
+    [[self cellAtColumn:colKey andRow:rowKey] setAlive:alive];
+}
+
+
 - (void)toggleCellAtColumn:(int)colKey andRow:(int)rowKey {
     [[self cellAtColumn:colKey andRow:rowKey] toggle];
 }
