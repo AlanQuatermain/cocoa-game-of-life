@@ -11,6 +11,8 @@
 		3FCF23580DF121A70027526A /* Cell.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FCF23570DF121A70027526A /* Cell.m */; };
 		3FCF236B0DF1271B0027526A /* CellView.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FCF236A0DF1271B0027526A /* CellView.m */; };
 		3FCF23720DF127A80027526A /* Controller.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FCF23710DF127A80027526A /* Controller.m */; };
+		3FD8860B0DF7C97000F36FBA /* Preferences.xib in Resources */ = {isa = PBXBuildFile; fileRef = 3FD886090DF7C97000F36FBA /* Preferences.xib */; };
+		3FFB088A0DF7A272002A2B92 /* PreferenceController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FFB08890DF7A272002A2B92 /* PreferenceController.m */; };
 		8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
 		8D11072D0486CEB800E47090 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
@@ -31,6 +33,9 @@
 		3FCF236A0DF1271B0027526A /* CellView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CellView.m; sourceTree = "<group>"; };
 		3FCF23700DF127A80027526A /* Controller.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Controller.h; sourceTree = "<group>"; };
 		3FCF23710DF127A80027526A /* Controller.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Controller.m; sourceTree = "<group>"; };
+		3FD8860A0DF7C97000F36FBA /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/Preferences.xib; sourceTree = "<group>"; };
+		3FFB08880DF7A272002A2B92 /* PreferenceController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PreferenceController.h; sourceTree = "<group>"; };
+		3FFB08890DF7A272002A2B92 /* PreferenceController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PreferenceController.m; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* Game of Life.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Game of Life.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -50,6 +55,8 @@
 		080E96DDFE201D6D7F000001 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				3FFB08880DF7A272002A2B92 /* PreferenceController.h */,
+				3FFB08890DF7A272002A2B92 /* PreferenceController.m */,
 				3FCF23700DF127A80027526A /* Controller.h */,
 				3FCF23710DF127A80027526A /* Controller.m */,
 				3FCF23690DF1271B0027526A /* CellView.h */,
@@ -111,6 +118,7 @@
 			isa = PBXGroup;
 			children = (
 				8D1107310486CEB800E47090 /* Info.plist */,
+				3FD886090DF7C97000F36FBA /* Preferences.xib */,
 				089C165CFE840E0CC02AAC07 /* InfoPlist.strings */,
 				1DDD58140DA1D0A300B32029 /* MainMenu.xib */,
 			);
@@ -171,6 +179,7 @@
 			files = (
 				8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */,
 				1DDD58160DA1D0A300B32029 /* MainMenu.xib in Resources */,
+				3FD8860B0DF7C97000F36FBA /* Preferences.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -185,6 +194,7 @@
 				3FCF23580DF121A70027526A /* Cell.m in Sources */,
 				3FCF236B0DF1271B0027526A /* CellView.m in Sources */,
 				3FCF23720DF127A80027526A /* Controller.m in Sources */,
+				3FFB088A0DF7A272002A2B92 /* PreferenceController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -205,6 +215,14 @@
 				1DDD58150DA1D0A300B32029 /* English */,
 			);
 			name = MainMenu.xib;
+			sourceTree = "<group>";
+		};
+		3FD886090DF7C97000F36FBA /* Preferences.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				3FD8860A0DF7C97000F36FBA /* English */,
+			);
+			name = Preferences.xib;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */

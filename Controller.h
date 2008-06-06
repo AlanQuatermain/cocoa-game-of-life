@@ -1,5 +1,9 @@
 #import <Cocoa/Cocoa.h>
-#import "Cell.h"
+@class Cell;
+@class PreferenceController;
+
+extern NSString * const CGLGridSizeKey;
+extern NSString * const CGLUpdateSpeedKey;
 
 @interface Controller : NSObject {
     IBOutlet id view;
@@ -7,14 +11,16 @@
     IBOutlet id size;
     IBOutlet id play;
     
-    NSMutableArray *cells;
+    PreferenceController *preferenceController;
     
+    NSMutableArray *cells;
     int columns;
     int rows;
     
     NSTimer *updateTimer;
     int updateSpeed;
 }
+@property(readwrite, assign) int updateSpeed;
 @property(readwrite, assign) int columns;
 @property(readwrite, assign) int rows;
 @property(readwrite, assign) NSMutableArray *cells;
@@ -32,8 +38,10 @@
 - (IBAction)clear:(id)sender;
 - (IBAction)next:(id)sender;
 - (IBAction)play:(id)sender;
-- (void)timerFired:(id)sender;
 - (IBAction)resize:(id)sender;
 - (IBAction)changeSpeed:(id)sender;
+- (IBAction)showPreferencePanel:(id)sender;
+- (void)timerFired:(id)sender;
+- (void)handleColorChange:(NSNotification *)note;
 
 @end

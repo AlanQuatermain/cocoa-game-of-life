@@ -1,27 +1,66 @@
 #import "Controller.h"
+#import "Cell.h"
+#import "PreferenceController.h"
+#import "CellView.h"
 
-#define GRID_SIZE 40
-#define UPDATE_SPEED -1.5
+NSString * const CGLGridSizeKey = @"GridSize";
+NSString * const CGLUpdateSpeedKey = @"UpdateSpeed";
 
 @implementation Controller
 
+@synthesize updateSpeed;
 @synthesize columns;
 @synthesize rows;
 @synthesize cells;
+
++ (void)initialize {
+    NSMutableDictionary *defaultValues = [NSMutableDictionary dictionary];
+    
+    // Colors
+    NSData *backgroundColorAsData = [NSKeyedArchiver archivedDataWithRootObject:
+                                     [NSColor grayColor]];
+    NSData *borderColorAsData = [NSKeyedArchiver archivedDataWithRootObject:
+                                 [NSColor whiteColor]];
+    NSData *cellAliveColorAsData = [NSKeyedArchiver archivedDataWithRootObject:
+                                    [NSColor yellowColor]];
+    NSData *cellDeadColorAsData = [NSKeyedArchiver archivedDataWithRootObject:
+                                   [NSColor blackColor]];
+    
+    [defaultValues setObject:backgroundColorAsData forKey:CGLBackgroundColorKey];
+    [defaultValues setObject:borderColorAsData forKey:CGLBorderColorKey];
+    [defaultValues setObject:cellAliveColorAsData forKey:CGLCellAliveColorKey];
+    [defaultValues setObject:cellDeadColorAsData forKey:CGLCellDeadColorKey];    
+    [defaultValues setObject:[NSNumber numberWithInt:40] forKey:CGLGridSizeKey];
+    [defaultValues setObject:[NSNumber numberWithFloat:-1.0] forKey:CGLUpdateSpeedKey];
+    
+    [[NSUserDefaults standardUserDefaults] registerDefaults:defaultValues];
+    
+}
 
 - (void)awakeFromNib {
     [NSApp setDelegate:self];
     [speed setFloatValue:updateSpeed];
     [size setIntValue:rows];
+	
+	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+	NSData *backgroundColorAsData = [defaults objectForKey:CGLBackgroundColorKey];
+	[view setBackgroundColor:[NSKeyedUnarchiver unarchiveObjectWithData:backgroundColorAsData]];
+	NSData *borderColorAsData = [defaults objectForKey:CGLBorderColorKey];
+	[view setBorderColor:[NSKeyedUnarchiver unarchiveObjectWithData:borderColorAsData]];
+	NSData *aliveColorAsData = [defaults objectForKey:CGLCellAliveColorKey];
+	[view setAliveColor:[NSKeyedUnarchiver unarchiveObjectWithData:aliveColorAsData]];
+	NSData *deadColorAsData = [defaults objectForKey:CGLCellDeadColorKey];
+	[view setDeadColor:[NSKeyedUnarchiver unarchiveObjectWithData:deadColorAsData]];
 }
 
 -(id)init {
     [super init];
+    [self setUpdateSpeed:[[NSUserDefaults standardUserDefaults] floatForKey:CGLUpdateSpeedKey]];
     
-    updateSpeed = UPDATE_SPEED;
-    [self setRows:GRID_SIZE];
-    [self setColumns:GRID_SIZE];
-    
+	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    [self setRows:[defaults floatForKey:CGLGridSizeKey]];
+    [self setColumns:[defaults floatForKey:CGLGridSizeKey]];
+ 	
     cells = [[NSMutableArray alloc] initWithCapacity:columns];
     
    for(int colIndex = 0; colIndex < columns; colIndex++) {
@@ -32,6 +71,12 @@
        }
        [cells insertObject:row atIndex:colIndex];
     }
+	
+	NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
+    [nc addObserver:self
+           selector:@selector(handleColorChange:)
+               name:CGLColorChangedNotification
+             object:nil];
     
     return self;
 }
@@ -172,7 +217,7 @@
 }
 
 - (IBAction)changeSpeed:(id)sender {
-    updateSpeed = [speed intValue];  
+    updateSpeed = [speed floatValue];  
     if([updateTimer isValid]) {
         [updateTimer invalidate];
         updateTimer = [NSTimer scheduledTimerWithTimeInterval:-updateSpeed
@@ -183,11 +228,41 @@
     }
 }
 
+- (IBAction)showPreferencePanel:(id)sender {
+    if(!preferenceController) {
+        preferenceController = [[PreferenceController alloc] init];
+    }
+    [preferenceController showWindow:self];
+}
+
+- (void)handleColorChange:(NSNotification *)note {
+	NSString *key = [[[note userInfo] allKeys] objectAtIndex:0];
+	if(key == CGLBackgroundColorKey) {
+		NSColor *color = [[note userInfo] objectForKey:CGLBackgroundColorKey];
+		[view setBackgroundColor:color];
+	} else if (key == CGLBorderColorKey) {
+		NSColor *color = [[note userInfo] objectForKey:CGLBorderColorKey];
+		[view setBorderColor:color];
+	} else if (key == CGLCellAliveColorKey) {
+		NSColor *color = [[note userInfo] objectForKey:CGLCellAliveColorKey];
+		[view setAliveColor:color];
+	} else if (key == CGLCellDeadColorKey) {
+		NSColor *color = [[note userInfo] objectForKey:CGLCellDeadColorKey];
+		[view setDeadColor:color];
+	}
+	[view setNeedsDisplay:YES];
+}
 
 #pragma mark Delegate Methods
 
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)theApplication {
     return YES;   
+}
+
+- (void)applicationWillTerminate:(NSNotification *)notification {
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    [defaults setObject:[NSNumber numberWithInt:[size intValue]] forKey:CGLGridSizeKey];
+    [defaults setObject:[NSNumber numberWithInt:[speed floatValue]] forKey:CGLUpdateSpeedKey];
 }
 
 @end
