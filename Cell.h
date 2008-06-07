@@ -1,6 +1,7 @@
 #import <Cocoa/Cocoa.h>
 
-@interface Cell : NSObject {
+@interface Cell : NSObject
+{
     bool    alive;
 }
 

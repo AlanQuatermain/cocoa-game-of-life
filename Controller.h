@@ -1,25 +1,31 @@
 #import <Cocoa/Cocoa.h>
+
 @class Cell;
 @class PreferenceController;
+@class CellView;
 
 extern NSString * const CGLGridSizeKey;
 extern NSString * const CGLUpdateSpeedKey;
 
-@interface Controller : NSObject {
-    IBOutlet id view;
-    IBOutlet id speed;
-    IBOutlet id size;
-    IBOutlet id play;
-    
+@interface Controller : NSObject
+{
+    IBOutlet CellView *view;
+    IBOutlet NSSlider *speed;
+    IBOutlet NSSlider *size;
+    IBOutlet NSButton *play;
+
     PreferenceController *preferenceController;
-    
+
+    // Cells
     NSMutableArray *cells;
     int columns;
     int rows;
-    
+
+    // Timer
     NSTimer *updateTimer;
     int updateSpeed;
 }
+
 @property(readwrite, assign) int updateSpeed;
 @property(readwrite, assign) int columns;
 @property(readwrite, assign) int rows;

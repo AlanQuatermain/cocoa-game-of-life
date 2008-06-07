@@ -1,65 +1,69 @@
 #import "CellView.h"
 #import "Controller.h"
 
-#define BORDER_WIDTH 1
-
 @implementation CellView
 
 @synthesize backgroundColor;
 @synthesize borderColor;
 @synthesize aliveColor;
 @synthesize deadColor;
+@synthesize borderSize;
 
-
-- (id)initWithFrame:(NSRect)frame {
+- (id)initWithFrame:(NSRect)frame
+{
     self = [super initWithFrame:frame];
     if (self) {
     }
     return self;
 }
 
-- (void)drawRect:(NSRect)rect {
-    
+- (void)drawRect:(NSRect)rect
+{
+
     NSRect bounds = [self bounds];
-	[backgroundColor set];
+    [[self backgroundColor] set];
     [NSBezierPath fillRect:bounds];
-    
+
     int columns = [controller columns];
     int rows = [controller rows];
-    cellWidth = ((bounds.size.width - (columns * BORDER_WIDTH)) / columns);
-    cellHeight = ((bounds.size.height - (rows * BORDER_WIDTH)) / rows);
-    
+    cellWidth = ((bounds.size.width - (columns * [self borderSize])) / columns);
+    cellHeight = ((bounds.size.height - (rows * [self borderSize])) / rows);
+
     // Draw Cells
-    
-    for(int colIndex = 0; colIndex < columns; colIndex++) {        
+
+    for(int colIndex = 0; colIndex < columns; colIndex++) {
         for(int rowIndex = 0; rowIndex < rows; rowIndex++) {
-            
-            if([controller cellAliveAtColumn:colIndex andRow:rowIndex]) {
-				[aliveColor set];
-            } else {
-				[deadColor set];
+
+            switch ([controller cellAliveAtColumn:colIndex andRow:rowIndex]) {
+                case YES:
+                    [[self aliveColor] set];
+                    break;
+                case NO:
+                    [[self deadColor] set];
+                    break;
             }
-            
-            NSRect cell = NSMakeRect((colIndex * cellWidth) + (colIndex * BORDER_WIDTH), 
-                                     (rowIndex * cellHeight) + (rowIndex * BORDER_WIDTH), 
-                                     cellWidth, 
-                                     cellHeight);
-            
+
+            // Create the cell
+            NSRect cell = NSMakeRect((colIndex * cellWidth) + (colIndex * [self borderSize]),
+                (rowIndex * cellHeight) + (rowIndex * [self borderSize]),
+                cellWidth,
+                cellHeight);
+
             [NSBezierPath fillRect:cell];
-            
+
             if((rowIndex % 5) == 0) {
-                [NSBezierPath setDefaultLineWidth:BORDER_WIDTH];
-				[borderColor set];
-                NSPoint start = NSMakePoint(bounds.origin.y, (rowIndex * cellHeight) + (rowIndex * BORDER_WIDTH));
-                NSPoint finish = NSMakePoint(bounds.size.width, (rowIndex * cellHeight) + (rowIndex * BORDER_WIDTH));
+                [NSBezierPath setDefaultLineWidth:[self borderSize]];
+                [[self borderColor] set];
+                NSPoint start = NSMakePoint(bounds.origin.y, (rowIndex * cellHeight) + (rowIndex * [self borderSize]));
+                NSPoint finish = NSMakePoint(bounds.size.width, (rowIndex * cellHeight) + (rowIndex * [self borderSize]));
                 [NSBezierPath strokeLineFromPoint:start toPoint:finish];
             }
         }
         if((colIndex % 5) == 0) {
-            [NSBezierPath setDefaultLineWidth:BORDER_WIDTH];
-			[borderColor set];
-            NSPoint start = NSMakePoint((colIndex * cellWidth) + (colIndex * BORDER_WIDTH), bounds.origin.x);
-            NSPoint finish = NSMakePoint((colIndex * cellWidth) + (colIndex * BORDER_WIDTH), bounds.size.height);
+            [NSBezierPath setDefaultLineWidth:[self borderSize]];
+            [[self borderColor] set];
+            NSPoint start = NSMakePoint((colIndex * cellWidth) + (colIndex * [self borderSize]), bounds.origin.x);
+            NSPoint finish = NSMakePoint((colIndex * cellWidth) + (colIndex * [self borderSize]), bounds.size.height);
             [NSBezierPath strokeLineFromPoint:start toPoint:finish];
         }
     }
@@ -67,30 +71,32 @@
 
 #pragma mark Events
 
-- (void)mouseDown:(NSEvent *)event {
+- (void)mouseDown:(NSEvent *)event
+{
     NSPoint p = [event locationInWindow];
     NSPoint downPoint = [self convertPoint:p fromView:nil];
-    int column = downPoint.x / (cellWidth + BORDER_WIDTH);
-    int row = downPoint.y / (cellHeight + BORDER_WIDTH);
+    int column = downPoint.x / (cellWidth + [self borderSize]);
+    int row = downPoint.y / (cellHeight + [self borderSize]);
     [controller toggleCellAtColumn:column andRow:row];
-    
+
     // For drags we want to enable or disable, not toggle
     dragCellStatus = [controller cellAliveAtColumn:column andRow:row];
-    
+
     [self setNeedsDisplay:TRUE];
 }
 
-- (void) mouseDragged:(NSEvent *)event {
+- (void) mouseDragged:(NSEvent *)event
+{
     NSPoint p = [event locationInWindow];
     NSPoint downPoint = [self convertPoint:p fromView:nil];
-    int column = downPoint.x / (cellWidth + BORDER_WIDTH);
-    int row = downPoint.y / (cellHeight + BORDER_WIDTH);
-    
+    int column = downPoint.x / (cellWidth + [self borderSize]);
+    int row = downPoint.y / (cellHeight + [self borderSize]);
+
     if (column != dragColumn || row != dragRow) {
         [controller setCellAlive:dragCellStatus AtColumn:column andRow:row];
         [self setNeedsDisplay:TRUE];
     }
-    
+
     dragColumn = column;
     dragRow = row;
 }
