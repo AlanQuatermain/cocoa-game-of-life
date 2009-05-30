@@ -40,57 +40,78 @@ NSString * const CGLUpdateSpeedKey = @"UpdateSpeed";
 
 }
 
-- (void)awakeFromNib
+- (void) awakeFromNib
 {
-    [NSApp setDelegate:self];
-    [speed setFloatValue:updateSpeed];
-    [size setIntValue:rows];
+    [speed setDoubleValue:updateSpeed];
+    [size setIntegerValue:rows];
 
     // Pull the saved preferences (or the defaults)
-    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-    NSData *backgroundColorAsData = [defaults objectForKey:CGLBackgroundColorKey];
-    [view setBackgroundColor:[NSKeyedUnarchiver unarchiveObjectWithData:backgroundColorAsData]];
-    NSData *borderColorAsData = [defaults objectForKey:CGLBorderColorKey];
-    [view setBorderColor:[NSKeyedUnarchiver unarchiveObjectWithData:borderColorAsData]];
-    NSData *aliveColorAsData = [defaults objectForKey:CGLCellAliveColorKey];
-    [view setAliveColor:[NSKeyedUnarchiver unarchiveObjectWithData:aliveColorAsData]];
-    NSData *deadColorAsData = [defaults objectForKey:CGLCellDeadColorKey];
-    [view setDeadColor:[NSKeyedUnarchiver unarchiveObjectWithData:deadColorAsData]];
+    NSData * data = nil;
+    data = [[NSUserDefaults standardUserDefaults] objectForKey: CGLBackgroundColorKey];
+    view.backgroundColor = [NSKeyedUnarchiver unarchiveObjectWithData: data];
+    data = [[NSUserDefaults standardUserDefaults] objectForKey: CGLBorderColorKey];
+    view.borderColor = [NSKeyedUnarchiver unarchiveObjectWithData: data];
+    data = [[NSUserDefaults standardUserDefaults] objectForKey: CGLCellAliveColorKey];
+    view.aliveColor = [NSKeyedUnarchiver unarchiveObjectWithData: data];
+    data = [[NSUserDefaults standardUserDefaults] objectForKey: CGLCellDeadColorKey];
+    view.deadColor = [NSKeyedUnarchiver unarchiveObjectWithData: data];
 
-    [view setBorderSize:[defaults integerForKey:CGLBorderSizeKey]];
+    view.borderSize = [[NSUserDefaults standardUserDefaults] integerForKey: CGLBorderSizeKey];
 }
 
 -(id)init
 {
-    [super init];
-    [self setUpdateSpeed:[[NSUserDefaults standardUserDefaults] floatForKey:CGLUpdateSpeedKey]];
+    self = [super init];
+    if ( self == nil )
+        return ( nil );
+    
+    self.updateSpeed = [[NSUserDefaults standardUserDefaults] doubleForKey: CGLUpdateSpeedKey];
 
-    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-    [self setRows:[defaults floatForKey:CGLGridSizeKey]];
-    [self setColumns:[defaults floatForKey:CGLGridSizeKey]];
+    self.rows = [[NSUserDefaults standardUserDefaults] integerForKey:CGLGridSizeKey];
+    self.columns = [[NSUserDefaults standardUserDefaults] integerForKey:CGLGridSizeKey];
 
+    // using alloc/init, so not using property accessors
     cells = [[NSMutableArray alloc] initWithCapacity:columns];
+    updates = [[NSMutableArray alloc] initWithCapacity: columns * rows];
+    
+    srandom( time(NULL) );
 
-    for(int colIndex = 0; colIndex < columns; colIndex++) {
+    for ( int colIndex = 0; colIndex < columns; colIndex++ )
+    {
         NSMutableArray *row = [NSMutableArray arrayWithCapacity:rows];
 
-        for(int rowIndex = 0; rowIndex < rows; rowIndex++) {
-            [row insertObject:[[Cell alloc] init] atIndex:rowIndex];
+        for ( int rowIndex = 0; rowIndex < rows; rowIndex++ )
+        {
+            // randomized starting state
+            Cell * cell = [[Cell alloc] init];
+            cell.alive = (BOOL) (random() % 2);
+            [row insertObject:cell atIndex:rowIndex];
+            [cell release];
         }
+        
         [cells insertObject:row atIndex:colIndex];
     }
 
-    NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
-    [nc addObserver:self
-           selector:@selector(handleColorChange:)
-               name:CGLColorChangedNotification
-             object:nil];
-    [nc addObserver:self
-           selector:@selector(handleBorderSizeChange:)
-               name:CGLBorderSizeChangedNotification
-             object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver: self
+                                             selector: @selector(handleColorChange:)
+                                                 name: CGLColorChangedNotification
+                                               object: nil];
+    [[NSNotificationCenter defaultCenter] addObserver: self
+                                             selector: @selector(handleBorderSizeChange:)
+                                                 name: CGLBorderSizeChangedNotification
+                                               object: nil];
 
     return self;
+}
+
+- (void) dealloc
+{
+    [preferenceController release];
+    [cells release];
+    [updates release];
+    [updateTimer invalidate];
+    [updateTimer release];
+    [super dealloc];
 }
 
 #pragma mark -
@@ -102,7 +123,7 @@ NSString * const CGLUpdateSpeedKey = @"UpdateSpeed";
  * @param rowKey row where the cell is located
  * @return the cell for the specified column and row
  */
-- (Cell *)cellAtColumn:(int)colKey andRow:(int)rowKey
+- (Cell *)cellAtColumn:(NSUInteger)colKey andRow:(NSUInteger)rowKey
 {
     if((colKey < 0 || colKey >= [self columns]) || (rowKey < 0 || rowKey >= [self rows]))
         return nil;
@@ -116,7 +137,7 @@ NSString * const CGLUpdateSpeedKey = @"UpdateSpeed";
  * @param colKey column where the cell is located
  * @param rowKey row where the cell is located
  */
-- (void)setCell:(Cell *)aCell atColumn:(int)colKey andRow:(int)rowKey
+- (void)setCell:(Cell *)aCell atColumn:(NSUInteger)colKey andRow:(NSUInteger)rowKey
 {
     NSMutableArray *column = [cells objectAtIndex:colKey];
     [column replaceObjectAtIndex:rowKey withObject:aCell];
@@ -130,7 +151,7 @@ NSString * const CGLUpdateSpeedKey = @"UpdateSpeed";
  * @param rowKey row where the cell is located
  * @return YES if the cell is alive, NO if it is dead
  */
-- (bool)cellAliveAtColumn:(int)colKey andRow:(int)rowKey
+- (bool)cellAliveAtColumn:(NSUInteger)colKey andRow:(NSUInteger)rowKey
 {
     return [[self cellAtColumn:colKey andRow:rowKey] alive];
 }
@@ -142,7 +163,7 @@ NSString * const CGLUpdateSpeedKey = @"UpdateSpeed";
  * @param colKey column where the cell is located
  * @param rowKey row where the cell is located
  */
-- (void)setCellAlive:(bool)alive AtColumn:(int)colKey andRow:(int)rowKey
+- (void)setCellAlive:(BOOL)alive AtColumn:(NSUInteger)colKey andRow:(NSUInteger)rowKey
 {
     [[self cellAtColumn:colKey andRow:rowKey] setAlive:alive];
 }
@@ -153,7 +174,7 @@ NSString * const CGLUpdateSpeedKey = @"UpdateSpeed";
  * @param colKey column where the cell is located
  * @param rowKey row where the cell is located
  */
-- (void)toggleCellAtColumn:(int)colKey andRow:(int)rowKey
+- (void)toggleCellAtColumn:(NSUInteger)colKey andRow:(NSUInteger)rowKey
 {
     [[self cellAtColumn:colKey andRow:rowKey] toggle];
 }
@@ -165,7 +186,7 @@ NSString * const CGLUpdateSpeedKey = @"UpdateSpeed";
  * @param rowKey row where the cell is located
  * @return total number of neighbours
  */
-- (int)findNeighboursForCellAtColumn:(int)colKey andRow:(int)rowKey
+- (int)findNeighboursForCellAtColumn:(NSUInteger)colKey andRow:(NSUInteger)rowKey
 {
     int total = 0;
 
@@ -199,41 +220,53 @@ NSString * const CGLUpdateSpeedKey = @"UpdateSpeed";
  */
 - (void)updateCells
 {
-    NSMutableArray *nextGen = [[NSMutableArray alloc] initWithCapacity:columns];
-    for(int colIndex = 0; colIndex < columns; colIndex++) {
-        NSMutableArray *row = [[NSMutableArray alloc] initWithCapacity:rows];
-        for(int rowIndex = 0; rowIndex < rows; rowIndex++) {
+    [updates removeAllObjects];
+    for ( int colIndex = 0; colIndex < columns; colIndex++ )
+    {
+        for ( int rowIndex = 0; rowIndex < rows; rowIndex++ )
+        {
             int neighbours = [self findNeighboursForCellAtColumn:colIndex andRow:rowIndex];
             Cell *cell = [self cellAtColumn:colIndex andRow:rowIndex];
-            Cell *newCell = [[Cell alloc] init];
-            if((neighbours == 2) && [cell alive]) {
-                // Cells that are alive, with 2 neighbours stay alive
-                [newCell setAlive:YES];
+            BOOL toggle = NO;
+            
+            if ( cell.alive )
+            {
+                if ( (neighbours < 2) || (neighbours > 3) )
+                    toggle = YES;
             }
-            else if(neighbours == 3) {
-                // Cells that have 3 neighbours are alive
-                [newCell setAlive:YES];
+            else if ( neighbours == 3 )
+            {
+                toggle = YES;
             }
-            else {
-                // Everyone else dies
-                [newCell setAlive:NO];
+            
+            if ( toggle )
+            {
+                NSUInteger coords[2] = { colIndex, rowIndex };
+                [updates addObject: [NSIndexPath indexPathWithIndexes: coords length: 2]];
             }
-            [row insertObject:newCell atIndex:rowIndex];
         }
-        [nextGen insertObject:row atIndex:colIndex];
     }
-    [self setCells:nextGen];
+    
+    // now we toggle everything we just marked
+    for ( NSIndexPath * path in updates )
+    {
+        [self toggleCellAtColumn: [path indexAtPosition: 0] andRow: [path indexAtPosition: 1]];
+    }
+    
     [view setNeedsDisplay:YES];
 }
 
 #pragma mark Events
 - (IBAction)clear:(id)sender
 {
-    for(int colIndex = 0; colIndex < columns; colIndex++) {
-        for(int rowIndex = 0; rowIndex < rows; rowIndex++) {
+    for ( int colIndex = 0; colIndex < columns; colIndex++ )
+    {
+        for ( int rowIndex = 0; rowIndex < rows; rowIndex++ )
+        {
             [[self cellAtColumn:colIndex andRow:rowIndex] setAlive:NO];
         }
     }
+    
     [view setNeedsDisplay:YES];
 }
 
@@ -244,19 +277,22 @@ NSString * const CGLUpdateSpeedKey = @"UpdateSpeed";
 
 - (IBAction)play:(id)sender
 {
-    if(updateTimer == nil) {
-        [play setTitle:@"Pause"];
-        updateTimer = [NSTimer scheduledTimerWithTimeInterval:-updateSpeed
-                                                       target:self
-                                                     selector:@selector(timerFired:)
-                                                     userInfo:nil
-                                                      repeats:YES];
-    }
-    else {
-        [play setTitle:@"Play"];
-        [updateTimer invalidate];
-        updateTimer = nil;
-    }
+    [sender setTitle:@"Pause"];
+    [sender setAction: @selector(pause:)];
+    updateTimer = [[NSTimer scheduledTimerWithTimeInterval: updateSpeed
+                                                    target: self
+                                                  selector: @selector(timerFired:)
+                                                  userInfo: nil
+                                                   repeats: YES] retain];
+}
+
+- (IBAction)pause:(id)sender
+{
+    [sender setTitle: @"Play"];
+    [sender setAction: @selector(play:)];
+    [updateTimer invalidate];
+    [updateTimer release];
+    updateTimer = nil;
 }
 
 - (IBAction)resize:(id)sender
@@ -279,20 +315,23 @@ NSString * const CGLUpdateSpeedKey = @"UpdateSpeed";
     [self setCells:newCells];
     [self setRows:newSize];
     [self setColumns:newSize];
+    [updates release];
+    updates = [[NSMutableArray alloc] initWithCapacity: columns * rows];
     [view setNeedsDisplay:YES];
 }
 
 - (IBAction)changeSpeed:(id)sender
 {
-    updateSpeed = [speed floatValue];
-    if([updateTimer isValid]) {
-        [updateTimer invalidate];
-        updateTimer = [NSTimer scheduledTimerWithTimeInterval:-updateSpeed
-                                                       target:self
-                                                     selector:@selector(timerFired:)
-                                                     userInfo:nil
-                                                      repeats:YES];
-    }
+    updateSpeed = 1.0 / [speed doubleValue];
+    
+    [updateTimer invalidate];
+    [updateTimer release];
+    
+    updateTimer = [[NSTimer scheduledTimerWithTimeInterval: updateSpeed
+                                                    target: self
+                                                  selector: @selector(timerFired:)
+                                                  userInfo: nil
+                                                   repeats: YES] retain];
 }
 
 - (IBAction)showPreferencePanel:(id)sender
@@ -346,9 +385,8 @@ NSString * const CGLUpdateSpeedKey = @"UpdateSpeed";
 
 - (void)applicationWillTerminate:(NSNotification *)notification
 {
-    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-    [defaults setObject:[NSNumber numberWithInt:[size intValue]] forKey:CGLGridSizeKey];
-    [defaults setObject:[NSNumber numberWithInt:[speed floatValue]] forKey:CGLUpdateSpeedKey];
+    [[NSUserDefaults standardUserDefaults] setInteger:[size integerValue] forKey:CGLGridSizeKey];
+    [[NSUserDefaults standardUserDefaults] setDouble: [speed doubleValue] forKey:CGLUpdateSpeedKey];
 }
 
 @end

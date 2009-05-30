@@ -2,10 +2,10 @@
 
 @interface Cell : NSObject
 {
-    bool    alive;
+    BOOL    alive;
 }
 
-@property(readwrite, assign) bool alive;
+@property(nonatomic, assign) BOOL alive;
 
 - (void)toggle;
 

@@ -17,6 +17,15 @@
     return self;
 }
 
+- (void) dealloc
+{
+    [backgroundColor release];
+    [borderColor release];
+    [aliveColor release];
+    [deadColor release];
+    [super dealloc];
+}
+
 - (void)drawRect:(NSRect)rect
 {
 
